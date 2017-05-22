@@ -1,35 +1,32 @@
-% plot the results that have converged to a different stable state other
-% than the starting configuration
-% last modified on May 02, 2017
+function plotConverged(template, opt)
+% plotConverged(template)
+% 
+% plots the results that have converged to a different stable state other
+% than the starting configuration. Also eliminates results that are badly
+% scaled or ``not square enough''
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% INPUT
+% template - some pre-defined geometry
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% OUTPUT
+% .png images of the selected results
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% last modified on May 22, 2017
 % yun
 
 
+bad = 0; % number of bad results
+good = 0; % number of good results
 
 
-clear; close all;
-
-bad = 0;
-good = 0;
-
-
-template = 'truncated tetrahedron';
-
-opt=initOpt('inputType','individual',...
-            'template',template,...
-            'plot','results',...
-            'interval',1,'saveFig','off','periodic','on',...
-            'figDPI',300,...
-            'saveMovie', 'off', 'safeMovieAntiAlias', 0,...
-            'constrFace','off','constrEdge','off',...
-            'Khinge',0.0005,'Kedge',1,'Kface',1,'KtargetAngle',1,...
-            'constAnglePerc',0.99, 'angleConstr', []);
 [unitCell,extrudedUnitCell,opt]=buildGeometry(opt);
 % keep a copy of extruded unit cell
 extrudedUnitCell_original = extrudedUnitCell;
-%%
+
 
 % get all files in directory that have exitFlag [1,1]
-fileFolder = strcat(pwd, '/Results/', template, '/dataComplete_1-3/');
+% i.e., those that converged correctly
+fileFolder = strcat(pwd, '/Results/', template, '/mat/');
 finished = dir(fileFolder);
 tol = .07;
 for ct = 1:length(finished)
@@ -66,7 +63,6 @@ for ct = 1:length(finished)
     end
     
     % read data
-
     load(strcat(fileFolder, fileName));
     % update extrudedUnitCell
     extrudedUnitCell.node = extrudedUnitCell_original.node...
@@ -82,7 +78,7 @@ for ct = 1:length(finished)
     % decide if it converged to a different stable state by checking if
     % there are hinges whose angles are close to pi or -pi
     u = result.deform(3).Ve;
-    [~,~,~,~,~,theta] = Energy_ext(u,extrudedUnitCell,opt);
+    [~,~,~,~,~,theta] = Energy(u,extrudedUnitCell,opt);
 
     if sum(abs(theta)>pi)>0
         disp('Discard result that has faces crossing over...')
@@ -119,9 +115,6 @@ for ct = 1:length(finished)
         bad = bad+1
         continue;
     end
-            
-            
-        
     
     
     % plot stable state and save

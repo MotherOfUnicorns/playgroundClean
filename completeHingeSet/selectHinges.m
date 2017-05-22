@@ -26,5 +26,5 @@ else
         allHinges(ct) = str2num(G.Nodes.Name{ct});
     end
     
-    hinges = combnk(allHinges, N);
+    hinges = combnk(allHinges, N); % all combinations
 end

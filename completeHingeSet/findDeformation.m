@@ -1,8 +1,11 @@
 function [result,extrudedUnitCell, opt] = ...
     findDeformation(unitCell,extrudedUnitCell,opt)
-% first with fmincon, then with gradDescent (with penalty for faces
-% crossing over)
+% Two steps of optimisation: first with fmincon, then with gradDescent
+% (with penalty for faces crossing over)
+% Adapted from Bas' code
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % last modified on Mar 31, 2017
+% yun
 
 % save this for second optimisation with gradient descent
 opt.extrudedUnitCell = extrudedUnitCell;
@@ -343,20 +346,30 @@ end
 
 
 function [deformationV, exitFlag] = gradDescent(opt, u0, max_iter)
-% gradient descent method without using fmincon, a penalty is imposed for
-% preventing faces corssing over each other.
-% u0 contains the coordinates of all nodes
-% Apr 04, 2017
-% yun li
+% gradient descent method with a penalty imposed for preventing faces from
+% corssing over each other.
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% INPUT
+% opt      - options
+% u0       - coordinates of all nodes
+% max_iter - maximum number of iterations
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% OUTPUT
+% deformationV - an array containing the deformation in each iteration
+% exitFlag     - if exitFlag = 1, convergence occured within max_iter
+%                if exitFlag = 0, max_iter is reached without convergence
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% last modified on May 22, 2017
+% yun
 
-%unitCell = opt.unitCell;
+
 extrudedUnitCell = opt.extrudedUnitCell;
 extrudedUnitCell.angleConstr = [];
 exitFlag = 1;
 
 % getting ready for the loop
 tol = 1e-9;
-step = 1e-1;
+step = 1e-1; % step size
 u = u0(:);
 ct = 0;
 difference = Inf;
@@ -366,12 +379,6 @@ while ct <= max_iter && difference > tol
     [e, de, ~,~,~,~, theta] = Energy(u, extrudedUnitCell, opt);
     % uses penalty to prevent faces from crossing over
     e = e + penalty(theta);
-    
-%     % stop loop if one of the hinge angles are over the allowed range
-%     if ~isempty(find(abs(theta)>pi, 1))
-%         warning('faces overlap!')
-%         break;
-%     end
     
     % get the new solution from jacobian
     u_new = u - step .* de(:);
@@ -394,5 +401,11 @@ deformationV = u(:);
 
 
 function ePen = penalty(theta)
-% a penalty function which allows values of theta that are in [-pi, pi]
-ePen = sum(max(0, 0.5 .* (theta - pi) .* (theta + pi)));
+% A penalty function which punished theta value outside the range of
+% [-0.95*pi, 0.95*pi].
+% The range is not [-pi, pi]
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% last modified on May 22, 2017
+% yun
+
+ePen = sum(max(0, 0.5 .* (theta - 0.95*pi) .* (theta + 0.95*pi)));

@@ -1,15 +1,20 @@
-% reads hingeList from file, and does the actuation and stuff
-% last modified on Mar 31, 2017
+% generates the list of all hinge sets and saves them in a .csv file,
+% reads from then file and do 2-step optimisation, and finally
+% plots the converged meaningful results
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% last modified on May 22, 2017
 % yun
 
+template = 'tetrahedron';
+
+%% first generate the list of all hinge sets
+getAllHinges(template);
 
 
-template = 'truncated tetrahedron';
+%% then perform the 2-step optimisation and save the resutls in .mat files
 fileName = strcat(pwd, '/hingeList/', template, '.csv');
 hingeList = dlmread(fileName);
 
-
-% for ct = 100:100
 for ct = 1:size(hingeList, 1)
     row = hingeList(ct, :);
     close all
@@ -28,3 +33,6 @@ for ct = 1:size(hingeList, 1)
     [result, extrudedUnitCell, opt] = actuateHinges(hinges, opt);
 end
 
+
+%% finally, plot the meaningful results
+plotConverged(template, opt)

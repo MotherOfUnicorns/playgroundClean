@@ -1,8 +1,12 @@
 function getAllHinges(geometry)
-% get the complete set of hinges, and dump them in a csv file
+% get the complete list of hinge sets, and dump them in a csv file
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % INPUT
 % geometry - a string of the name of the geometry
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% OUTPUT
+% A .csv file of the complete list of hinge sets, where each row is one
+% such hinge set
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % last modified on Mar 31, 2017
 % yun

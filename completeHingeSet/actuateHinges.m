@@ -1,11 +1,18 @@
 function [result, extrudedUnitCell, opt] = actuateHinges(hingeList, opt)
-% close hinges specified in the list
-% also saves the hinges actuated the resulting exitflag, and the results in
-% a .mat file, and output an image of the final stage
+% [result, extrudedUnitCell, opt] = actuateHinges(hingeList, opt)
+% 
+% Two-step optimiation with hinges specified in the hingeList closed.
+% Also saves the the results and exitFlags in a .mat file, (and after
+% uncommenting the final section, outputs an image of the final state).
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % INPUT
 % hingeList - a list of hinges to be actuated at the same time
 % opt       - options
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% OUTPUT
+% result           - final results from convergence
+% extrudedUnitCell - updated extruded unit cell
+% opt              - updated options
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % last modified on Apr 04, 2017
 % yun
@@ -30,9 +37,8 @@ opt.extrudedUnitCell = extrudedUnitCell;
     findDeformation(unitCell,extrudedUnitCell,opt);
 
 
-date = datestr(now, 'mmm-dd-yyyy');
 % create folder if it doesn't exist
-folderName = strcat(pwd, '/Results/', opt.template, '/', date, '/');
+folderName = strcat(pwd, '/Results/', opt.template, '/mat/');
 if ~exist(folderName, 'dir')
     mkdir(folderName);
 end
@@ -40,7 +46,7 @@ fileName = strcat(folderName, 'hinge', mat2str(hingeList), '_exitflg',...
     mat2str([opt.exitFlag1, opt.exitFlag2]), '.mat');
 save(fileName, 'result');
 
-% % output the final image
+% % uncomment to output the final image
 %     if opt.exitFlag1 == 1 && opt.exitFlag2 == 1
 %         resultF.numMode = 1;
 %         resultF.deform.V = result.deform(3).V;

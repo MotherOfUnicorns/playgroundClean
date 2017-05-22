@@ -5,11 +5,23 @@ function [G, opt] = buildGraph(opt)
 % opt - options
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % OUTPUT
-% G - a (directed) graph object
+% G   - a (directed) graph object
+% opt - updated options
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-% last modified on Mar 28, 2017 
+% EXAMPLE
+% opt=initOpt('inputType','individual',...
+%             'template','truncated tetrahedron',...
+%             'plot','result',...
+%             'interval',1,'saveFig','off','periodic','off',...
+%             'constrFace','off','constrEdge','off',...
+%             'Khinge',0.0005,'Kedge',1,'Kface',1,'KtargetAngle',1,...
+%             'constAnglePerc',0.99);
+% G = buildGraph(opt);
+% plot(G)
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% last modified on May 22, 2017 
 % yun
-% still need to add node attributes and do some cleaning up
+
 
 
 % initialising...
@@ -18,7 +30,6 @@ opt.unitCell = unitCell;
 opt.extrudedUnitCell = extrudedUnitCell;
 numEdges = size(unitCell.Polyhedron.edge, 1);
 G_adjacency = zeros(numEdges);
-
 
 
 % ========== uncomment to plot info ==========
@@ -125,15 +136,3 @@ coord1 = unitCell.Polyhedron.node(nodes(1), :);
 coord2 = unitCell.Polyhedron.node(nodes(2), :);
 vec = coord2 - coord1;
 end
-
-
-%% example
-% opt=initOpt('inputType','individual',...
-%             'template','truncated tetrahedron',...
-%             'plot','result',...
-%             'interval',1,'saveFig','off','periodic','off',...
-%             'constrFace','off','constrEdge','off',...
-%             'Khinge',0.0005,'Kedge',1,'Kface',1,'KtargetAngle',1,...
-%             'constAnglePerc',0.99);
-% G = buildGraph(opt);
-% plot(G)

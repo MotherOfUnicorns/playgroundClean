@@ -1,5 +1,7 @@
-function [E, dE,Eedge,Eface,Ehinge,theta]=Energy_ext(u,extrudedUnitCell,opt)
+function [E, dE,Eedge,Eface,Ehinge,theta]=Energy(u,extrudedUnitCell,opt)
 % extended energy function that also returns the analytical jacobian
+% adapted from Bas' GRADIENT
+% yun
 
 dE=zeros(3*size(extrudedUnitCell.node,1),1);
 Eedge=0;
