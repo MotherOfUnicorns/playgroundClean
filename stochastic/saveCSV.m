@@ -1,15 +1,22 @@
 function saveCSV(opt, header, fn_name, varargin)
-% dumps generated data into several CSV files
-% varargin must be [name1], [array1], [name2], [array2], ... e.g.,
-%   'smpl', smpl, 'acceptance', acceptance
-% fn_name: name of the function calling saveCSV
+% saveCSV(opt, header, fn_name, varargin)
 %
-% Dec 13, 2016
-% Yun Li
+% Dumps generated data into several CSV files.
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% INPUT
+% opt
+% header
+% fn_name  - name of the function calling saveCSV.m
+% varargin - must be in the form of [name1],[array1], [name2],[array2], ...
+%            e.g., 'smpl', smpl, 'acceptance', acceptance
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% OUTPUT
+% One csv file for each input variable
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% last modified on May 22, 2017
+% yun
 
-% create folder is doesn't exist yet
-%date = datestr(now, 'mmm-dd-yyyy');
-%time = datestr(now,'HH-MM-SS');
+% create folder if it doesn't exist yet
 date = opt.date;
 time = opt.time;
 nameFolder = [pwd, '/Results/', date, '/data/'];
@@ -26,7 +33,6 @@ stuff = struct();
 for ct = 1:(nargin-3)/2
     [stuff(:).(varargin{2*ct-1})] = deal(varargin{2*ct});
 end
-
 
 % save all files
 fields = fieldnames(stuff);
