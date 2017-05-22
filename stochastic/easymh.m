@@ -1,4 +1,4 @@
-function [smpl] = mh(x0, nsteps, pdf)
+function [smpl] = easymh(x0, nsteps, pdf)
 % using normal distr as jumping fn
 
 x = x0(:)';
