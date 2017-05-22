@@ -70,7 +70,8 @@ while ct <= max_iter+1 && difference > tol
     u_new = u - step .* de(:);
     
     % calculate energy difference between two consecutive solutions
-    difference = abs(energy(ct) - energy(ct-1));
+    difference = abs(energy(ct) - energy(ct-1)) / ...
+        size(extrudedUnitCell.edge,1); % normalised to the number of hinges
     % difference = norm(u_new - u);
     
     % stop loop if one of the hinge angles are over the allowed range
