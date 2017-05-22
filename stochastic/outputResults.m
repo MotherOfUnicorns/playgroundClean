@@ -1,4 +1,4 @@
-function [f] = results(unitCell,extrudedUnitCell,result,timesteps,opt)
+function [f] = outputResults(unitCell,extrudedUnitCell,result,timesteps,opt)
 
 % options for saving simulation data
 date = opt.date;

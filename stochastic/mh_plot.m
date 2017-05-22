@@ -149,4 +149,4 @@ if mod(nsamples-1, updateRate) ~= 0
     result.deform(result.numMode).Ve = deformationV(end,:)';
 end
 
-results(unitCell,extrudedUnitCell,result,timesteps,opt);
+outputResults(unitCell,extrudedUnitCell,result,timesteps,opt);
