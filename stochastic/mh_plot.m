@@ -1,7 +1,45 @@
 function mh_plot(nsamples, energy, deformationV, opt, acceptance, maxTheta)
-% plots the results from MH.m, breating.m, annealing.m and many others
-%
-% last modified on Feb 24, 2017
+% mh_plot(nsamples, energy, deformationV, opt, acceptance, maxTheta)
+% 
+% Plots the results from MH.m, breating.m, annealing.m and many others
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% INPUT
+% nsamples     - number of samples/iterations
+% energy       - an array containing the energy at each step
+% deformationV - a matrix containing all deformations
+% opt          - options
+% acceptance   - an array containing the acceptance rate at each step
+%                (optional)
+% maxTheta     - maximum deformation in angles of each hinge at each step
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% OUTPUT
+% Produces an animation of the extruded unit cell, as well as a graph of
+% all the input values.
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% EXAMPLE
+% opt=initOpt('inputType','individual',...
+%             'template','truncated tetrahedron',...
+%             'plot','result',... %'scale', 1,... % deformation
+%             'saveMovie', 'on', 'safeMovieAntiAlias', 0, ...
+%             'saveCSV', 'on', 'saveGraph', 'on', ... graph from mh_plot
+%             'beta', 1, 'delta', .02, ...
+%             'interval',1,'saveFig','off','periodic','off',... 
+%             'Khinge',0,'Kedge',1,'Kface',100,'KtargetAngle',1,...
+%             'constrEdge','off', 'constrFace','off', ...
+%             'date', datestr(now, 'mmm-dd-yyyy'),...
+%             'time', datestr(now,'HH-MM-SS'));
+% [~,extrudedUnitCell,opt]=buildGeometry(opt);
+% u0 = zeros(1, 3*size(extrudedUnitCell.node, 1)); % starting point
+% nsamples = uint32(2e2);
+% tic;
+% [acceptance, energy, deformationV, maxTheta] = mh(opt, u0, nsamples);
+% toc;
+% max(maxTheta)
+% tic;
+% mh_plot(nsamples, energy, deformationV, opt, acceptance, maxTheta)
+% toc;
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% last modified on May 22, 2017
 % yun
 
 % input validation...
@@ -90,15 +128,6 @@ if strcmp(opt.saveGraph, 'on')
         'delta=', num2str(opt.delta),'.fig')]);
 end
 
-
-% result.numMode = nsamples;
-% for ct = 1:result.numMode
-%     result.deform(ct).V = [deformationV(ct, 1:3:end)'...
-%         deformationV(ct, 2:3:end)' deformationV(ct, 3:3:end)'];
-%     result.deform(ct).Ve = deformationV(ct,:)';
-% end
-
-
 % only update animation every 10 iterations
 updateRate = 10;
 timesteps = 1:updateRate:nsamples;
@@ -121,27 +150,3 @@ if mod(nsamples-1, updateRate) ~= 0
 end
 
 results(unitCell,extrudedUnitCell,result,timesteps,opt);
-
-
-% %% mh & mh_plot example
-% opt=initOpt('inputType','individual',...
-%             'template','truncated tetrahedron',...
-%             'plot','result',... %'scale', 1,... % deformation
-%             'saveMovie', 'on', 'safeMovieAntiAlias', 0, ...
-%             'saveCSV', 'on', 'saveGraph', 'on', ... graph from mh_plot
-%             'beta', 1, 'delta', .02, ...
-%             'interval',1,'saveFig','off','periodic','off',... 
-%             'Khinge',0,'Kedge',1,'Kface',100,'KtargetAngle',1,...
-%             'date', datestr(now, 'mmm-dd-yyyy'),...
-%             'time', datestr(now,'HH-MM-SS'));
-% [unitCell,extrudedUnitCell,opt]=buildGeometry(opt);
-% [T]=linearConstr(unitCell,extrudedUnitCell,opt);
-% u0 = zeros(1, size(T,2)); % starting point
-% nsamples = uint32(2e2);
-% tic;
-% [smpl, acceptance, energy, deformationV, maxTheta] = mh(opt, u0, nsamples);
-% toc;
-% max(maxTheta)
-% tic;
-% mh_plot(nsamples, energy, deformationV, opt, acceptance, maxTheta)
-% toc;
