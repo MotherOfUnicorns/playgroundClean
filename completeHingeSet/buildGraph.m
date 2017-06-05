@@ -1,7 +1,9 @@
-function [G, opt] = buildGraph(opt)
+function [G, opt] = buildGraph(unitCell, extrudedUnitCell, opt)
 % build directed graph from polyhedra
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % INPUT
+% unitCell
+% extrudedUnitCell
 % opt - options
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % OUTPUT
@@ -16,28 +18,29 @@ function [G, opt] = buildGraph(opt)
 %             'constrFace','off','constrEdge','off',...
 %             'Khinge',0.0005,'Kedge',1,'Kface',1,'KtargetAngle',1,...
 %             'constAnglePerc',0.99);
-% G = buildGraph(opt);
+% [unitCell, extrudedUnitCell, opt] = buildGeometry(opt);
+% [G, opt] = buildGraph(unitCell, extrudedUnitCell, opt);
 % plot(G)
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-% last modified on May 22, 2017 
+% last modified on Jun 05, 2017 
 % yun
 
 
 
 % initialising...
-[unitCell,extrudedUnitCell,~]=buildGeometry(opt);
-opt.unitCell = unitCell;
-opt.extrudedUnitCell = extrudedUnitCell;
+% [unitCell,extrudedUnitCell,~]=buildGeometry(opt);
+% opt.unitCell = unitCell;
+% opt.extrudedUnitCell = extrudedUnitCell;
 numEdges = size(unitCell.Polyhedron.edge, 1);
-G_adjacency = zeros(numEdges);
+G_adjacency = zeros(numEdges); % initialise adjacency matrix
 
 
 % ========== uncomment to plot info ==========
 % outputResults(unitCell, extrudedUnitCell, [], opt);
 
 
-% center of the polyhedron, useful for determining graph direction
-unitCell.Polyhedron.center = mean(unitCell.Polyhedron.node, 1);
+% center of the polyhedron, used for determining directions in graph *G*
+center = mean(unitCell.Polyhedron.node, 1);
 
 
 % determine how two hinges are connected, and generate adjacency matrix
@@ -80,8 +83,7 @@ for ii = 1:numEdges
                 % determine the direction between these two hinges
                 edgeV1 = - getHingeVector([n1,n2], comm_node, unitCell);
                 edgeV2 = getHingeVector(n_edge2, comm_node, unitCell);
-                normV = unitCell.Polyhedron.node(comm_node,:) - ...
-                    unitCell.Polyhedron.center;
+                normV = unitCell.Polyhedron.node(comm_node,:) - center;
                 direction = dot(normV, cross(edgeV1,edgeV2));
                 if direction < 0
                     G_adjacency(ii,jj) = 1;
@@ -103,6 +105,8 @@ G.Nodes.Properties.RowNames = hingeNames;
 G.Nodes.IsClosed = isClosed;
 G.Nodes.Type = hingeTypes;
 G.Nodes.HingeNodes = hingeNodes;
+
+opt.graph = G;
 end
 
 

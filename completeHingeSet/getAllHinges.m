@@ -1,27 +1,17 @@
-function getAllHinges(geometry)
+function getAllHinges(G, opt)
 % get the complete list of hinge sets, and dump them in a csv file
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % INPUT
-% geometry - a string of the name of the geometry
+% G - a directed graph created from the options
+% opt - options
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % OUTPUT
 % A .csv file of the complete list of hinge sets, where each row is one
 % such hinge set
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-% last modified on Mar 31, 2017
+% last modified on Jun 05, 2017
 % yun
 
-
-opt=initOpt('inputType','individual',...
-            'template',geometry,...
-            'plot','info',...
-            'interval',1,'saveFig','off','periodic','on',...
-            'figDPI',300,...
-            'saveMovie', 'on', 'safeMovieAntiAlias', 0,...
-            'constrFace','off','constrEdge','off',...
-            'Khinge',0.0005,'Kedge',1,'Kface',1,'KtargetAngle',1,...
-            'constAnglePerc',0.99);
-[G, opt] = buildGraph(opt);
 
 % create folder if it doesn't exist
 folderName = strcat(pwd, '/hingeList/');

@@ -1,34 +1,33 @@
-function [result,extrudedUnitCell, opt] = ...
-    findDeformation(unitCell,extrudedUnitCell,opt)
+function [result, extrudedUnitCell, exitFlag1, exitFlag2, opt] = ...
+    findDeformation(unitCell, extrudedUnitCell, opt)
 % Two steps of optimisation: first with fmincon, then with gradDescent
 % (with penalty for faces crossing over)
 % Adapted from Bas' code
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-% last modified on Mar 31, 2017
+% last modified on Jun 05, 2017
 % yun
 
 % save this for second optimisation with gradient descent
-opt.extrudedUnitCell = extrudedUnitCell;
+original_extrudedUnitCell = extrudedUnitCell;
 
 %Show details geometries (if requested)
 if strcmp(opt.plot,'info')
+    exitFlag1 = 0;
+    exitFlag2 = 0;
     result=[];
-else
+else % optimisations...
 	% first use fmincon
-    [V1, extrudedUnitCell, exitFlag] = ...
+    [V1, extrudedUnitCell, exitFlag1] = ...
         nonlinearFolding(unitCell, extrudedUnitCell, opt);
-    opt.exitFlag1 = exitFlag;
-    
+
     % then use gradDescent
     max_iter = 100000;
     u0 = V1(:,end);
-    [V2, exitFlag] = gradDescent(opt, u0, max_iter);
-    opt.exitFlag2 = exitFlag;
+    [V2, exitFlag2] = ...
+        gradDescent(original_extrudedUnitCell, opt, u0, max_iter);
     
     % combine results
     V = [V1, V2];
-
-
     result.numMode=size(V,2);
 
     %Create different way of storing results
@@ -91,56 +90,7 @@ tic
 % result.EtargetAngle=EtargetAngle;
 % result.Theta = theta0;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%ENERGY
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [E, dE,Eedge,Eface,Ehinge,EtargetAngle,theta] = ...
-    Energy(u,extrudedUnitCell,opt)
 
-E=0; dE=zeros(3*size(extrudedUnitCell.node,1),1);
-Eedge=0;
-Eface=0;
-Ehinge=0;
-EtargetAngle=0;
-
-%APPLY DEFORMATION NODES
-extrudedUnitCell.node = extrudedUnitCell.node ...
-                        +[u(1:3:end) u(2:3:end) u(3:3:end)];
-
-%ENERGY ASSOCIATED TO EDGE STRETCHING
-if strcmp(opt.constrEdge,'off')
-    [dEdge, Jedge]=getEdge(extrudedUnitCell);
-    Eedge=1/2*opt.Kedge*sum(dEdge.^2);
-    dE=dE+opt.Kedge*Jedge'*dEdge;
-end
-
-%ENERGY ASSOCIATED TO FACE BENDING
-if strcmp(opt.constrFace,'off')
-    [dFace, Jface]=getFace(extrudedUnitCell);
-    Eface=opt.Kface/2*sum(dFace.^2);
-    dE=dE+opt.Kface*Jface'*dFace;
-end
-
-%ENERGY ASSOCIATED TO HINGE BENDING
-[theta, Jhinge]=getHinge(extrudedUnitCell);
-Ehinge=1/2*opt.Khinge*sum((theta-extrudedUnitCell.theta).^2);
-dE=dE+opt.Khinge*(Jhinge'*(theta-extrudedUnitCell.theta));
-
-%ENERGY ASSOCIATED TO TARGET HINGE ANGLES
-if size(extrudedUnitCell.angleConstr,1)==0
-    dtheta=[];
-else
-    dtheta = theta(extrudedUnitCell.angleConstr(:,1))...
-            -extrudedUnitCell.angleConstr(:,2);
-    dE = dE + opt.KtargetAngle...
-        *Jhinge(extrudedUnitCell.angleConstr(:,1),:)' * dtheta;
-end
-EtargetAngle=1/2*opt.KtargetAngle*sum(dtheta.^2);
-
-%TOTAL ENERGY
-E=Eedge+Eface+Ehinge+EtargetAngle;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -266,90 +216,18 @@ if strcmp(opt.periodic,'on')
     end
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%EDGE LENGTH AND JACOBIAN
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [dEdge, Jedge]=getEdge(extrudedUnitCell)
-dEdge=zeros(size(extrudedUnitCell.edge,1),1);
-Jedge=zeros(length(extrudedUnitCell.edge),size(extrudedUnitCell.node,1)*3);   
-for i=1:size(extrudedUnitCell.edge,1)
-    coor1=extrudedUnitCell.node(extrudedUnitCell.edge(i,1),:);
-    coor2=extrudedUnitCell.node(extrudedUnitCell.edge(i,2),:);
-    dx=coor2-coor1;
-    L=sqrt(dx*dx');
-    dEdge(i)=L-extrudedUnitCell.edgeL(i);            
-    Jedge(i,3*extrudedUnitCell.edge(i,1)-2:3*extrudedUnitCell.edge(i,1))...
-        = -dx/L;
-    Jedge(i,3*extrudedUnitCell.edge(i,2)-2:3*extrudedUnitCell.edge(i,2))...
-        = dx/L;
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%FACE OUT OF PLANE DEFORMATION AND JACOBIAN
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [dFace, Jface]=getFace(extrudedUnitCell)
-rep=0;
-tnf=0;
-for i=1:length(extrudedUnitCell.face)
-    tnf=tnf+length(extrudedUnitCell.face{i})-3;
-end
-dFace=zeros(tnf,1);
-Jface=zeros(tnf,size(extrudedUnitCell.node,1)*3);
-for i=1:length(extrudedUnitCell.face)
-    coor1=extrudedUnitCell.node(extrudedUnitCell.face{i}(1),:);
-    coor2=extrudedUnitCell.node(extrudedUnitCell.face{i}(2),:);
-    coor3=extrudedUnitCell.node(extrudedUnitCell.face{i}(3),:);
-    a=cross(coor2-coor1,coor3-coor1);
-    for j=1:length(extrudedUnitCell.face{i})-3
-        rep=rep+1;
-        coor4=extrudedUnitCell.node(extrudedUnitCell.face{i}(3+j),:);
-        Jface(rep,3*extrudedUnitCell.face{i}(1)-2:...
-            3*extrudedUnitCell.face{i}(1))...
-            = cross((coor3-coor2),(coor3-coor4));
-        Jface(rep,3*extrudedUnitCell.face{i}(2)-2:...
-            3*extrudedUnitCell.face{i}(2))...
-            =cross((coor3-coor1),(coor4-coor1));
-        Jface(rep,3*extrudedUnitCell.face{i}(3)-2:...
-            3*extrudedUnitCell.face{i}(3)) = ...
-            cross((coor4-coor1),(coor2-coor1));
-        Jface(rep,3*extrudedUnitCell.face{i}(3+j)-2:...
-            3*extrudedUnitCell.face{i}(3+j)) ...
-            =cross((coor2-coor1),(coor3-coor1));
-        dFace(rep)=(coor4-coor1)*a';
-    end
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%HINGE ANGLE AND JACOBIAN
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [theta, Jhinge]=getHinge(extrudedUnitCell)
-theta=zeros(size(extrudedUnitCell.nodeHingeEx,1),1);
-Jhinge = zeros(size(extrudedUnitCell.nodeHingeEx,1),...
-               size(extrudedUnitCell.node,1)*3);
-for i=1:size(extrudedUnitCell.nodeHingeEx,1)
-    extrudedUnitCell.node(extrudedUnitCell.nodeHingeEx(i,:),:);
-    index(1:3:12)=3*extrudedUnitCell.nodeHingeEx(i,:)-2;
-    index(2:3:12)=3*extrudedUnitCell.nodeHingeEx(i,:)-1;
-    index(3:3:12)=3*extrudedUnitCell.nodeHingeEx(i,:);
-    [Jhinge(i,index),theta(i)] = ...
-        JacobianHinge(extrudedUnitCell.node(...
-                    extrudedUnitCell.nodeHingeEx(i,:),:));
-end
 
 
 
 
-function [deformationV, exitFlag] = gradDescent(opt, u0, max_iter)
+function [deformationV, exitFlag] = ...
+    gradDescent(original_extrudedUnitCell, opt, u0, max_iter)
 % gradient descent method with a penalty imposed for preventing faces from
 % corssing over each other.
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % INPUT
+% original_extrudedUnitCell - extruded unit cell without applying any
+%                             deformations
 % opt      - options
 % u0       - coordinates of all nodes
 % max_iter - maximum number of iterations
@@ -363,8 +241,7 @@ function [deformationV, exitFlag] = gradDescent(opt, u0, max_iter)
 % yun
 
 
-extrudedUnitCell = opt.extrudedUnitCell;
-extrudedUnitCell.angleConstr = [];
+original_extrudedUnitCell.angleConstr = [];
 exitFlag = 1;
 
 % getting ready for the loop
@@ -376,7 +253,7 @@ difference = Inf;
 e_prev = Inf;
 while ct <= max_iter && difference > tol
     % energy of current u
-    [e, de, ~,~,~,~, theta] = Energy(u, extrudedUnitCell, opt);
+    [e, de, ~,~,~,~, theta] = Energy(u, original_extrudedUnitCell, opt);
     % uses penalty to prevent faces from crossing over
     e = e + penalty(theta);
     
@@ -385,7 +262,7 @@ while ct <= max_iter && difference > tol
     
     % calculate difference between two consecutive solutions
     difference = abs(e - e_prev) / ...
-        size(extrudedUnitCell.edge,1); % normalised to the number of hinges
+        size(original_extrudedUnitCell.edge,1); % normalised to the number of hinges
     
     % prepare for next step
     ct = ct + 1;

@@ -1,4 +1,4 @@
-function plotConverged(template, opt)
+function plotConverged(opt)
 % plotConverged(template)
 % 
 % plots the results that have converged to a different stable state other
@@ -6,7 +6,7 @@ function plotConverged(template, opt)
 % scaled or ``not square enough''
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % INPUT
-% template - some pre-defined geometry
+% opt - options
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % OUTPUT
 % .png images of the selected results
@@ -26,7 +26,7 @@ extrudedUnitCell_original = extrudedUnitCell;
 
 % get all files in directory that have exitFlag [1,1]
 % i.e., those that converged correctly
-fileFolder = strcat(pwd, '/Results/', template, '/mat/');
+fileFolder = strcat(pwd, '/Results/', opt.template, '/mat/');
 finished = dir(fileFolder);
 tol = .07;
 for ct = 1:length(finished)
@@ -78,6 +78,7 @@ for ct = 1:length(finished)
     % decide if it converged to a different stable state by checking if
     % there are hinges whose angles are close to pi or -pi
     u = result.deform(3).Ve;
+    extrudedUnitCell.angleConstr = [];
     [~,~,~,~,~,theta] = Energy(u,extrudedUnitCell,opt);
 
     if sum(abs(theta)>pi)>0
@@ -125,7 +126,7 @@ for ct = 1:length(finished)
     fig = gcf;
     set(fig, 'visible', 'off');
 
-    imgFolder = strcat(pwd, '/Results/', template, '/img/');
+    imgFolder = strcat(pwd, '/Results/', opt.template, '/img/');
     if ~exist(imgFolder, 'dir')
         mkdir(imgFolder)
     end

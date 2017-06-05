@@ -19,12 +19,13 @@ if N < 0 || N > size(G.Nodes,1)
     hinges = [];
     warning('You are selecting the wrong number of hinges to actuate!')
 else
-    % the name of all hinges (in extrudedUnitCell)
+    % first get the name of all hinges (in extrudedUnitCell)
     numHinges = size(G.Nodes, 1);
     allHinges = zeros(1, numHinges);
     for ct = 1:numHinges
         allHinges(ct) = str2num(G.Nodes.Name{ct});
     end
     
+    % then choose N out of them, and return the names of selected hinges
     hinges = combnk(allHinges, N); % all combinations
 end

@@ -1,4 +1,5 @@
-function [result, extrudedUnitCell, opt] = actuateHinges(hingeList, opt)
+function [result, extrudedUnitCell, opt] = ...
+    actuateHinges(hingeList, unitCell, extrudedUnitCell, opt)
 % [result, extrudedUnitCell, opt] = actuateHinges(hingeList, opt)
 % 
 % Two-step optimiation with hinges specified in the hingeList closed.
@@ -7,6 +8,8 @@ function [result, extrudedUnitCell, opt] = actuateHinges(hingeList, opt)
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % INPUT
 % hingeList - a list of hinges to be actuated at the same time
+% unitCell
+% extrudedUnitCell
 % opt       - options
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % OUTPUT
@@ -14,27 +17,25 @@ function [result, extrudedUnitCell, opt] = actuateHinges(hingeList, opt)
 % extrudedUnitCell - updated extruded unit cell
 % opt              - updated options
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-% last modified on Apr 04, 2017
+% last modified on Jun 05, 2017
 % yun
 
 
 if isempty(hingeList)
     result = [];
-    extrudedUnitCell = opt.extrudedUnitCell;
     return
 end
 
-newList = [hingeList(:), -pi*0.985 * ones(length(hingeList), 1)];
-opt.angleConstrFinal(1).val = newList;
+
+actuationsList = [hingeList(:), -pi*0.985 * ones(length(hingeList), 1)];
+
+opt.angleConstrFinal(1).val = actuationsList;
 opt.options=optimoptions('fmincon','GradConstr','on','GradObj','on',...
     'tolfun',1e-5','tolx',1e-9,'tolcon',1e-5,'Display','off',...
     'DerivativeCheck','off','maxfunevals',100000);
 
-[unitCell,extrudedUnitCell,opt]=buildGeometry(opt); % Bas' magic line
-opt.unitCell = unitCell;
-opt.extrudedUnitCell = extrudedUnitCell;
-[result, extrudedUnitCell, opt] = ...
-    findDeformation(unitCell,extrudedUnitCell,opt);
+[result, extrudedUnitCell, exitFlag1, exitFlag2, opt] = ...
+    findDeformation(unitCell, extrudedUnitCell, opt);
 
 
 % create folder if it doesn't exist
@@ -43,10 +44,10 @@ if ~exist(folderName, 'dir')
     mkdir(folderName);
 end
 fileName = strcat(folderName, 'hinge', mat2str(hingeList), '_exitflg',...
-    mat2str([opt.exitFlag1, opt.exitFlag2]), '.mat');
+    mat2str([exitFlag1, exitFlag2]), '.mat');
 save(fileName, 'result');
 
-% % uncomment to output the final image
+%% uncomment to output the final image
 %     if opt.exitFlag1 == 1 && opt.exitFlag2 == 1
 %         resultF.numMode = 1;
 %         resultF.deform.V = result.deform(3).V;
