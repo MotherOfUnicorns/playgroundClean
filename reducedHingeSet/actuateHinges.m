@@ -46,11 +46,3 @@ end
 fileName = strcat(folderName, 'hinge', mat2str(hingeList), '_exitflg',...
     mat2str([exitFlag1, exitFlag2]), '.mat');
 save(fileName, 'result');
-
-%% uncomment to output the final image
-%     if opt.exitFlag1 == 1 && opt.exitFlag2 == 1
-%         resultF.numMode = 1;
-%         resultF.deform.V = result.deform(3).V;
-%         resultF.deform.Ve = result.deform(3).Ve;
-%         outputResults(opt.unitCell, extrudedUnitCell, resultF, opt)
-%     end

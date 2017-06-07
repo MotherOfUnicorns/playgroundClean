@@ -9,7 +9,7 @@ function [flavourDict, flavourTypes, flavourNum] = getFlavours(G)
 % flavourNum   - number of different flavours
 % flavourDict  - a container map that maps different flavourTypes to
 %                different numeric values. E.g., in truncated tetrahedron,
-%                flavourDict('3-6') = 1, flavourDict('6-6') = 2
+%                flavourDict('3-6') = '1', flavourDict('6-6') = '2'
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % last modified on Jun 07, 2017
 % yun

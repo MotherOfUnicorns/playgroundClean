@@ -27,16 +27,16 @@ extrudedUnitCell_original = extrudedUnitCell;
 % get all files in directory that have exitFlag [1,1]
 % i.e., those that converged correctly
 fileFolder = strcat(pwd, '/Results/', opt.template, '/mat/');
-finished = dir(fileFolder);
+allFiles = dir(fileFolder);
 tol = .07;
-for ct = 1:length(finished)
-    if finished(ct).isdir
+for ct = 1:length(allFiles)
+    if allFiles(ct).isdir
         disp('skip all directories...')
         continue;
     end
     
     % parse the file name to get back hinge set and exit flag
-    fileName = finished(ct).name;
+    fileName = allFiles(ct).name;
     parsedName = strsplit(fileName(1:end-4), '_');
     hingeSetStr = parsedName{1};
     exitFlagStr = parsedName{2};

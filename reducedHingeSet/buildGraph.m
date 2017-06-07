@@ -47,7 +47,7 @@ isClosed = cell(numEdges, 1);
 hingeNodes = cell(numEdges, 1);
 for ii = 1:numEdges
     n1 = unitCell.Polyhedron.edge(ii,1);
-    n2 = unitCell.Polyhedron.edge(ii,2);
+    n2 = unitCell.Polyhedron.edge(ii,2); % endnodes of the edge
     hingeNodes{ii} = sort([n1 n2]);
     % getting the edge numbering from nodeHingeEx (consistent with how
     % they're numbered in outputResults
@@ -96,7 +96,7 @@ G_adjacency = sparse(G_adjacency);
 % finally, make a graph of the hinges
 G = digraph(G_adjacency);
 
-% assign names and other properties to the nodes
+% assign names and other properties to the nodes of the graph (edges on the polyherdon)
 G.Nodes.Name = hingeNames;
 G.Nodes.Properties.RowNames = hingeNames;
 G.Nodes.IsClosed = isClosed;

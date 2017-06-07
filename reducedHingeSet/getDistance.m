@@ -1,5 +1,5 @@
 function dis = getDistance(G, flavourDict)
-% Returns the ``distance'' matrix
+% Returns the ``distance'' matrix with flavours
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 % INPUT
 % G - an digraph object

@@ -32,7 +32,7 @@ if exist(fileName, 'file')
     delete(fileName) % always start with new file
 end
 
-% name of all hinges
+% name of all hinges converted to an array of numbers
 allHinges = zeros(1, height(G.Nodes));
 for ct = 1:height(G.Nodes)
     allHinges(ct) = str2num(G.Nodes.Properties.RowNames{ct});

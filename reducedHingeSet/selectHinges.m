@@ -26,7 +26,7 @@ elseif N == 0
     hinges = [];
     
 elseif N == 1
-    % actuate different types of hinges and 'extruded hinges'
+    % actuate different types of hinges
     hinges = zeros(flavourNum, 1);
     for ct = 1:flavourNum
         idx = find(1==strcmp(G.Nodes.Type, flavourTypes(ct)), 1);
@@ -53,28 +53,15 @@ else% N >= 2
         for flavourCt = 1:flavourNum
             candidateIdxs = find(1==strcmp(G.Nodes.Type, ...
                 flavourTypes{flavourCt}));
-            finalIdxs = [];
-            finalRows = zeros(1, size(cols,2));
-            
-            % prune away the rows that have the same entryies
-            for canCt = 1:length(candidateIdxs)
-                candidateRow = cols(candidateIdxs(canCt), :);
-                if ~ismember(candidateRow, finalRows, 'rows')
-                    finalIdxs = [finalIdxs; candidateIdxs(canCt)];
-                    finalRows = [finalRows; candidateRow];
-                end
-            end
-            % get rid of the initial empty row
-%             finalRows = finalRows(2:end, :);
-
             
             % then start comparing matrices
-            for nodeCt = 1:length(finalIdxs)
-                newNodeIdx = finalIdxs(nodeCt);
+            for nodeCt = 1:length(candidateIdxs)
+                newNodeIdx = candidateIdxs(nodeCt);
                 if newNodeIdx <= hingeSetIdx(end)
                     % avoid double counting
                     continue;
                 end
+                
                 newNode = str2num(G.Nodes{newNodeIdx, 'Name'}{1});
                 newSet = [hingeSet, newNode];
                 newSetIdx = [hingeSetIdx, newNodeIdx];
